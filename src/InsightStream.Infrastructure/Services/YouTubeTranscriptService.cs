@@ -69,11 +69,11 @@ public sealed class YouTubeTranscriptService : IYouTubeTranscriptService
     {
         try
         {
-            var videoId = VideoId.TryParse(videoUrl);
+            var videoId = YoutubeExplode.Videos.VideoId.TryParse(videoUrl);
             if (videoId is null)
             {
                 throw new ArgumentException(
-                    "❌ Invalid YouTube URL. Please provide a valid YouTube video link.", 
+                    "❌ Invalid YouTube URL. Please provide a valid YouTube video link.",
                     nameof(videoUrl));
             }
             return videoId.Value;
@@ -95,7 +95,7 @@ public sealed class YouTubeTranscriptService : IYouTubeTranscriptService
     /// <returns>The video metadata.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the video is unavailable.</exception>
     private async Task<VideoMetadata> FetchMetadataAsync(
-        VideoId videoId, 
+        YoutubeExplode.Videos.VideoId videoId,
         CancellationToken cancellationToken)
     {
         try
@@ -126,7 +126,7 @@ public sealed class YouTubeTranscriptService : IYouTubeTranscriptService
     /// <returns>The list of transcript captions.</returns>
     /// <exception cref="InvalidOperationException">Thrown when captions are not available.</exception>
     private async Task<List<ClosedCaption>> FetchTranscriptAsync(
-        VideoId videoId, 
+        YoutubeExplode.Videos.VideoId videoId,
         CancellationToken cancellationToken)
     {
         try

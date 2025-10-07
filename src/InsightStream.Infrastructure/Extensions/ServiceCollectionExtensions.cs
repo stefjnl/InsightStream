@@ -4,6 +4,8 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using InsightStream.Application.Interfaces.Factories;
 using InsightStream.Application.Interfaces.Services;
+using InsightStream.Application.Interfaces.Agents;
+using InsightStream.Application.UseCases;
 using InsightStream.Infrastructure.Configuration;
 using InsightStream.Infrastructure.Factories;
 using InsightStream.Infrastructure.Services;
@@ -36,8 +38,16 @@ public static class ServiceCollectionExtensions
         // Register video cache service
         services.AddSingleton<IVideoCacheService, VideoCacheService>();
 
-        // TODO: Register agents (Phase 3)
-        // TODO: Register use cases (Phase 4)
+        // Register agents (Scoped lifetime)
+        // Note: Agent implementations are expected in Phase 3
+        // TODO: Uncomment these registrations when agent implementations are available
+        // services.AddScoped<IYouTubeOrchestrator, YouTubeOrchestratorAgent>();
+        // services.AddScoped<IContentExtractionAgent, ContentExtractionAgent>();
+        // services.AddScoped<IAnalysisAgent, AnalysisAgent>();
+        // services.AddScoped<IQuestionAnsweringAgent, QuestionAnsweringAgent>();
+
+        // Register use cases (Scoped lifetime)
+        services.AddScoped<ProcessYouTubeRequestUseCase>();
 
         return services;
     }
