@@ -198,37 +198,16 @@ public sealed class ProcessYouTubeRequestUseCase
             yield break;
         }
 
-        // Stream the response and collect it for conversation history
+        // Stream the response once, collecting it while yielding to the caller
         var responseBuilder = new System.Text.StringBuilder();
-        var streamingTask = Task.Run(async () =>
-        {
-            await foreach (var chunk in responseStream.WithCancellation(cancellationToken))
-            {
-                responseBuilder.Append(chunk);
-            }
-        }, cancellationToken);
-
-        // Stream the chunks to the caller
+        
         await foreach (var chunk in responseStream.WithCancellation(cancellationToken))
         {
+            // Collect the chunk for conversation history
+            responseBuilder.Append(chunk);
+            
+            // Stream the chunk to the caller
             yield return chunk;
-        }
-
-        // Wait for the collection task to complete
-        Exception? collectionException = null;
-        try
-        {
-            await streamingTask;
-        }
-        catch (Exception ex)
-        {
-            collectionException = ex;
-        }
-
-        if (collectionException != null)
-        {
-            _logger.LogError(collectionException, "Error during response collection for VideoId: {VideoId}", request.VideoId);
-            yield break;
         }
 
         var fullResponse = responseBuilder.ToString();

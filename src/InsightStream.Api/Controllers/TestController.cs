@@ -83,7 +83,8 @@ public class TestController : ControllerBase
                 VideoId = result.VideoId,
                 Metadata = result.Metadata,
                 Chunks = result.Chunks,
-                Summary = null
+                Summary = null,
+                ConversationHistory = new List<ConversationMessage>()
             };
             
             await _cacheService.SetVideoSessionAsync(session);

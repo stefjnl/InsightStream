@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using InsightStream.Application.Interfaces.Services;
@@ -8,11 +9,12 @@ namespace InsightStream.Infrastructure.Services;
 /// <summary>
 /// Service implementation for caching video sessions and related data using IMemoryCache.
 /// </summary>
-public sealed class VideoCacheService : IVideoCacheService
+public sealed class VideoCacheService : IVideoCacheService, IDisposable
 {
     private readonly IMemoryCache _cache;
     private readonly ILogger<VideoCacheService> _logger;
     private readonly MemoryCacheEntryOptions _cacheOptions;
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphores;
 
     public VideoCacheService(IMemoryCache cache, ILogger<VideoCacheService> logger)
     {
@@ -26,6 +28,9 @@ public sealed class VideoCacheService : IVideoCacheService
             SlidingExpiration = TimeSpan.FromHours(4),
             Priority = CacheItemPriority.Normal
         };
+        
+        // Initialize concurrent dictionary to store semaphores for each video ID
+        _semaphores = new ConcurrentDictionary<string, SemaphoreSlim>();
     }
 
     /// <inheritdoc />
@@ -69,67 +74,89 @@ public sealed class VideoCacheService : IVideoCacheService
     }
 
     /// <inheritdoc />
-    public Task UpdateSummaryAsync(string videoId, string summary, CancellationToken cancellationToken = default)
+    public async Task UpdateSummaryAsync(string videoId, string summary, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(videoId);
         ArgumentNullException.ThrowIfNull(summary);
         
-        var cacheKey = GetCacheKey(videoId);
+        // Get or create a semaphore for this video ID to ensure thread safety
+        var semaphore = _semaphores.GetOrAdd(videoId, _ => new SemaphoreSlim(1, 1));
         
-        if (_cache.TryGetValue(cacheKey, out VideoSession? session) && session != null)
+        await semaphore.WaitAsync(cancellationToken);
+        try
         {
-            // Create a copy with updated summary to ensure thread safety
-            var updatedSession = new VideoSession
-            {
-                VideoId = session.VideoId,
-                Metadata = session.Metadata,
-                Chunks = session.Chunks,
-                Summary = summary,
-                ConversationHistory = new List<ConversationMessage>(session.ConversationHistory)
-            };
+            var cacheKey = GetCacheKey(videoId);
             
-            _cache.Set(cacheKey, updatedSession, _cacheOptions);
-            _logger.LogInformation("Updated summary for video session: {VideoId}", videoId);
-            return Task.CompletedTask;
+            if (_cache.TryGetValue(cacheKey, out VideoSession? session) && session != null)
+            {
+                // Create a copy with updated summary to ensure thread safety
+                var updatedSession = new VideoSession
+                {
+                    VideoId = session.VideoId,
+                    Metadata = session.Metadata,
+                    Chunks = session.Chunks,
+                    Summary = summary,
+                    ConversationHistory = new List<ConversationMessage>(session.ConversationHistory)
+                };
+                
+                _cache.Set(cacheKey, updatedSession, _cacheOptions);
+                _logger.LogInformation("Updated summary for video session: {VideoId}", videoId);
+                return;
+            }
+            
+            _logger.LogWarning("Attempted to update summary for non-existent video session: {VideoId}", videoId);
+            throw new InvalidOperationException($"Video session with ID '{videoId}' not found in cache.");
         }
-        
-        _logger.LogWarning("Attempted to update summary for non-existent video session: {VideoId}", videoId);
-        throw new InvalidOperationException($"Video session with ID '{videoId}' not found in cache.");
+        finally
+        {
+            semaphore.Release();
+        }
     }
 
     /// <inheritdoc />
-    public Task AddConversationMessageAsync(string videoId, ConversationMessage message, CancellationToken cancellationToken = default)
+    public async Task AddConversationMessageAsync(string videoId, ConversationMessage message, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(videoId);
         ArgumentNullException.ThrowIfNull(message);
         
-        var cacheKey = GetCacheKey(videoId);
+        // Get or create a semaphore for this video ID to ensure thread safety
+        var semaphore = _semaphores.GetOrAdd(videoId, _ => new SemaphoreSlim(1, 1));
         
-        if (_cache.TryGetValue(cacheKey, out VideoSession? session) && session != null)
+        await semaphore.WaitAsync(cancellationToken);
+        try
         {
-            // Create a new conversation history with the added message
-            var updatedConversationHistory = new List<ConversationMessage>(session.ConversationHistory)
-            {
-                message
-            };
+            var cacheKey = GetCacheKey(videoId);
             
-            // Create a copy with updated conversation history to ensure thread safety
-            var updatedSession = new VideoSession
+            if (_cache.TryGetValue(cacheKey, out VideoSession? session) && session != null)
             {
-                VideoId = session.VideoId,
-                Metadata = session.Metadata,
-                Chunks = session.Chunks,
-                Summary = session.Summary,
-                ConversationHistory = updatedConversationHistory
-            };
+                // Create a new conversation history with the added message
+                var updatedConversationHistory = new List<ConversationMessage>(session.ConversationHistory)
+                {
+                    message
+                };
+                
+                // Create a copy with updated conversation history to ensure thread safety
+                var updatedSession = new VideoSession
+                {
+                    VideoId = session.VideoId,
+                    Metadata = session.Metadata,
+                    Chunks = session.Chunks,
+                    Summary = session.Summary,
+                    ConversationHistory = updatedConversationHistory
+                };
+                
+                _cache.Set(cacheKey, updatedSession, _cacheOptions);
+                _logger.LogDebug("Added conversation message to video session: {VideoId}", videoId);
+                return;
+            }
             
-            _cache.Set(cacheKey, updatedSession, _cacheOptions);
-            _logger.LogDebug("Added conversation message to video session: {VideoId}", videoId);
-            return Task.CompletedTask;
+            _logger.LogWarning("Attempted to add conversation message to non-existent video session: {VideoId}", videoId);
+            throw new InvalidOperationException($"Video session with ID '{videoId}' not found in cache.");
         }
-        
-        _logger.LogWarning("Attempted to add conversation message to non-existent video session: {VideoId}", videoId);
-        throw new InvalidOperationException($"Video session with ID '{videoId}' not found in cache.");
+        finally
+        {
+            semaphore.Release();
+        }
     }
 
     /// <summary>
@@ -138,4 +165,16 @@ public sealed class VideoCacheService : IVideoCacheService
     /// <param name="videoId">The video ID.</param>
     /// <returns>The cache key.</returns>
     private static string GetCacheKey(string videoId) => $"video_session:{videoId}";
+    
+    /// <summary>
+    /// Disposes of the semaphores used for thread safety.
+    /// </summary>
+    public void Dispose()
+    {
+        foreach (var semaphore in _semaphores.Values)
+        {
+            semaphore.Dispose();
+        }
+        _semaphores.Clear();
+    }
 }

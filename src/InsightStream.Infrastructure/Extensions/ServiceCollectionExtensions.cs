@@ -9,6 +9,7 @@ using InsightStream.Application.UseCases;
 using InsightStream.Infrastructure.Configuration;
 using InsightStream.Infrastructure.Factories;
 using InsightStream.Infrastructure.Services;
+using InsightStream.Infrastructure.Agents;
 
 namespace InsightStream.Infrastructure.Extensions;
 
@@ -39,12 +40,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IVideoCacheService, VideoCacheService>();
 
         // Register agents (Scoped lifetime)
-        // Note: Agent implementations are expected in Phase 3
-        // TODO: Uncomment these registrations when agent implementations are available
-        // services.AddScoped<IYouTubeOrchestrator, YouTubeOrchestratorAgent>();
-        // services.AddScoped<IContentExtractionAgent, ContentExtractionAgent>();
-        // services.AddScoped<IAnalysisAgent, AnalysisAgent>();
-        // services.AddScoped<IQuestionAnsweringAgent, QuestionAnsweringAgent>();
+        services.AddScoped<IYouTubeOrchestrator, YouTubeOrchestratorAgent>();
+        services.AddScoped<IContentExtractionAgent, ContentExtractionAgent>();
+        services.AddScoped<IAnalysisAgent, AnalysisAgent>();
+        services.AddScoped<IQuestionAnsweringAgent, QuestionAnsweringAgent>();
 
         // Register use cases (Scoped lifetime)
         services.AddScoped<ProcessYouTubeRequestUseCase>();
