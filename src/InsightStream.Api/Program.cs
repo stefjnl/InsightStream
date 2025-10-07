@@ -1,5 +1,6 @@
 using InsightStream.ServiceDefaults;
 using InsightStream.Infrastructure.Extensions;
+using InsightStream.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,12 +9,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add CORS configuration
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Register infrastructure layer (includes configuration binding)
 builder.Services.AddInsightStreamInfrastructure(builder.Configuration);
 
 var app = builder.Build();
-
-// app.MapDefaultEndpoints(); // Commented out for now
 
 if (app.Environment.IsDevelopment())
 {
@@ -21,6 +31,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors(); // Add CORS
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>(); // Add error handling
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

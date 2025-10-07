@@ -1,15 +1,13 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
+using InsightStream.Application.Interfaces.Agents;
 using InsightStream.Application.Interfaces.Factories;
 using InsightStream.Application.Interfaces.Services;
-using InsightStream.Application.Interfaces.Agents;
 using InsightStream.Application.UseCases;
+using InsightStream.Infrastructure.Agents;
 using InsightStream.Infrastructure.Configuration;
 using InsightStream.Infrastructure.Factories;
 using InsightStream.Infrastructure.Services;
-using InsightStream.Infrastructure.Agents;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace InsightStream.Infrastructure.Extensions;
 
