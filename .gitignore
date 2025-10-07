@@ -416,7 +416,6 @@ secrets.json
 *.cer
 
 # ASP.NET Core specific
-wwwroot/
 appsettings.Local.json
 !appsettings.Local.example.json
 
