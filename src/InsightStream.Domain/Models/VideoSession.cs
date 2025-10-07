@@ -6,7 +6,7 @@ public sealed class VideoSession
     public required VideoMetadata Metadata { get; init; }
     public required IReadOnlyList<TranscriptChunk> Chunks { get; init; }
     public string? Summary { get; set; }
-    public List<ConversationMessage> ConversationHistory { get; init; } = new();
+    public required List<ConversationMessage> ConversationHistory { get; init; }
 }
 
 public sealed record ConversationMessage

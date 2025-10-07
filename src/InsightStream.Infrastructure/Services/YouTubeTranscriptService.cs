@@ -69,11 +69,11 @@ public sealed class YouTubeTranscriptService : IYouTubeTranscriptService
     {
         try
         {
-            var videoId = VideoId.TryParse(videoUrl);
+            var videoId = YoutubeExplode.Videos.VideoId.TryParse(videoUrl);
             if (videoId is null)
             {
                 throw new ArgumentException(
-                    "❌ Invalid YouTube URL. Please provide a valid YouTube video link.", 
+                    "❌ Invalid YouTube URL. Please provide a valid YouTube video link.",
                     nameof(videoUrl));
             }
             return videoId.Value;
@@ -95,7 +95,7 @@ public sealed class YouTubeTranscriptService : IYouTubeTranscriptService
     /// <returns>The video metadata.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the video is unavailable.</exception>
     private async Task<VideoMetadata> FetchMetadataAsync(
-        VideoId videoId, 
+        YoutubeExplode.Videos.VideoId videoId,
         CancellationToken cancellationToken)
     {
         try
@@ -126,7 +126,7 @@ public sealed class YouTubeTranscriptService : IYouTubeTranscriptService
     /// <returns>The list of transcript captions.</returns>
     /// <exception cref="InvalidOperationException">Thrown when captions are not available.</exception>
     private async Task<List<ClosedCaption>> FetchTranscriptAsync(
-        VideoId videoId, 
+        YoutubeExplode.Videos.VideoId videoId,
         CancellationToken cancellationToken)
     {
         try
@@ -171,7 +171,11 @@ public sealed class YouTubeTranscriptService : IYouTubeTranscriptService
         }
 
         var chunks = new List<TranscriptChunk>();
-        var currentChunk = new StringBuilder();
+        
+        // Calculate optimal StringBuilder capacity based on transcript characteristics
+        var estimatedChunkCapacity = CalculateOptimalChunkCapacity(captions);
+        var currentChunk = new StringBuilder(estimatedChunkCapacity);
+        
         var chunkStartTime = captions[0].Offset;
         var chunkStartIndex = 0;
         var currentCharCount = 0;
@@ -197,11 +201,19 @@ public sealed class YouTubeTranscriptService : IYouTubeTranscriptService
 
                 // Calculate overlap start point
                 var overlapStartIndex = Math.Max(
-                    chunkStartIndex, 
+                    chunkStartIndex,
                     i - CalculateOverlapCaptionCount(captions, i));
 
-                // Start new chunk with overlap
+                // Start new chunk with overlap - estimate capacity for overlap chunk
+                var overlapCaptionCount = i - overlapStartIndex + 1;
+                var estimatedOverlapCapacity = EstimateOverlapCapacity(captions, overlapStartIndex, i);
+                
                 currentChunk.Clear();
+                if (currentChunk.Capacity < estimatedOverlapCapacity)
+                {
+                    currentChunk.Capacity = estimatedOverlapCapacity;
+                }
+                
                 chunkStartIndex = overlapStartIndex;
                 chunkStartTime = captions[overlapStartIndex].Offset;
                 currentCharCount = 0;
@@ -259,5 +271,63 @@ public sealed class YouTubeTranscriptService : IYouTubeTranscriptService
         }
         
         return count;
+    }
+
+    /// <summary>
+    /// Estimates the StringBuilder capacity needed for overlap captions.
+    /// </summary>
+    /// <param name="captions">The list of captions.</param>
+    /// <param name="startIndex">The start index of overlap.</param>
+    /// <param name="endIndex">The end index of overlap.</param>
+    /// <returns>The estimated capacity needed.</returns>
+    private int EstimateOverlapCapacity(List<ClosedCaption> captions, int startIndex, int endIndex)
+    {
+        var estimatedLength = 0;
+        
+        // Calculate actual length of captions in the overlap range
+        for (int i = startIndex; i <= endIndex; i++)
+        {
+            estimatedLength += captions[i].Text.Length + 1; // +1 for space
+        }
+        
+        // Add 25% buffer to account for additional captions that might be added
+        return estimatedLength + (estimatedLength / 4);
+    }
+
+    /// <summary>
+    /// Calculates the optimal StringBuilder capacity based on transcript characteristics.
+    /// </summary>
+    /// <param name="captions">The list of captions.</param>
+    /// <returns>The optimal capacity for StringBuilder initialization.</returns>
+    private int CalculateOptimalChunkCapacity(List<ClosedCaption> captions)
+    {
+        // For very short transcripts, use the total length
+        if (captions.Count <= 10)
+        {
+            var totalLength = captions.Sum(c => c.Text.Length + 1);
+            return Math.Max(totalLength, TranscriptConstants.ChunkSizeCharacters / 4);
+        }
+
+        // For normal transcripts, use the configured chunk size with buffer
+        var baseCapacity = TranscriptConstants.ChunkSizeCharacters;
+        
+        // Sample first few captions to estimate average caption length
+        var sampleSize = Math.Min(5, captions.Count);
+        var averageCaptionLength = captions.Take(sampleSize)
+            .Average(c => c.Text.Length + 1);
+        
+        // Estimate how many captions will fit in a chunk
+        var estimatedCaptionsPerChunk = baseCapacity / averageCaptionLength;
+        
+        // Calculate overlap capacity
+        var overlapCapacity = Math.Min(
+            TranscriptConstants.ChunkOverlapCharacters,
+            estimatedCaptionsPerChunk * averageCaptionLength);
+        
+        // Total capacity = chunk size + overlap + 25% buffer
+        var totalCapacity = baseCapacity + overlapCapacity + (baseCapacity / 4);
+        
+        // Ensure minimum reasonable capacity
+        return Math.Max((int)totalCapacity, TranscriptConstants.ChunkSizeCharacters / 2);
     }
 }
