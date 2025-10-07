@@ -31,12 +31,25 @@ public sealed class GlobalExceptionHandlerMiddleware
     private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/problem+json";
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        
+        var statusCode = exception switch
+        {
+            ArgumentException => StatusCodes.Status400BadRequest,
+            InvalidOperationException => StatusCodes.Status400BadRequest,
+            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+            KeyNotFoundException => StatusCodes.Status404NotFound,
+            TimeoutException => StatusCodes.Status408RequestTimeout,
+            _ => StatusCodes.Status500InternalServerError
+        };
+
+        context.Response.StatusCode = statusCode;
 
         var problemDetails = new ProblemDetails
         {
-            Status = StatusCodes.Status500InternalServerError,
-            Title = "An error occurred while processing your request",
+            Status = statusCode,
+            Title = statusCode >= StatusCodes.Status400BadRequest && statusCode < StatusCodes.Status500InternalServerError
+                ? "Client error"
+                : "Server error",
             Detail = exception.Message,
             Instance = context.Request.Path
         };

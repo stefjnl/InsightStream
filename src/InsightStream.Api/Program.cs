@@ -31,8 +31,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors(); // Add CORS
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>(); // Add error handling
+app.UseCors(); // Add CORS
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

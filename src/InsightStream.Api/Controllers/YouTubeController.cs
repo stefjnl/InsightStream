@@ -95,7 +95,7 @@ public sealed class YouTubeController : ControllerBase
 
         try
         {
-            await foreach (var chunk in _useCase.AskQuestionAsync(request, cancellationToken))
+            await foreach (var chunk in _useCase.AskQuestionAsync(request, cancellationToken).WithCancellation(cancellationToken))
             {
                 await Response.WriteAsync($"data: {chunk}\n\n", cancellationToken);
                 await Response.Body.FlushAsync(cancellationToken);
@@ -115,11 +115,27 @@ public sealed class YouTubeController : ControllerBase
             await Response.WriteAsync($"data: {errorMessage}\n\n", cancellationToken);
             await Response.Body.FlushAsync(cancellationToken);
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid argument for VideoId: {VideoId}", request.VideoId);
+            
+            var errorMessage = JsonSerializer.Serialize(new { error = ex.Message });
+            await Response.WriteAsync($"data: {errorMessage}\n\n", cancellationToken);
+            await Response.Body.FlushAsync(cancellationToken);
+        }
+        catch (VideoUnavailableException ex)
+        {
+            _logger.LogWarning(ex, "Video unavailable for VideoId: {VideoId}", request.VideoId);
+            
+            var errorMessage = JsonSerializer.Serialize(new { error = ex.Message });
+            await Response.WriteAsync($"data: {errorMessage}\n\n", cancellationToken);
+            await Response.Body.FlushAsync(cancellationToken);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during question processing for VideoId: {VideoId}", request.VideoId);
             
-            var errorMessage = JsonSerializer.Serialize(new { error = "An error occurred while processing your question" });
+            var errorMessage = JsonSerializer.Serialize(new { error = ex.Message });
             await Response.WriteAsync($"data: {errorMessage}\n\n", cancellationToken);
             await Response.Body.FlushAsync(cancellationToken);
         }
