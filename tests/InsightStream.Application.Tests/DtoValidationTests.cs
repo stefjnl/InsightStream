@@ -24,11 +24,11 @@ public class DtoValidationTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    [InlineData(null!)]
-    public void AnalyzeRequest_WithNullOrEmptyVideoUrl_ShouldCreateInstanceButBeInvalid(string videoUrl)
+    [InlineData(null)]
+    public void AnalyzeRequest_WithNullOrEmptyVideoUrl_ShouldCreateInstanceButBeInvalid(string? videoUrl)
     {
         // Act
-        var request = new AnalyzeRequest { VideoUrl = videoUrl };
+        var request = new AnalyzeRequest { VideoUrl = videoUrl! };
 
         // Assert
         Assert.NotNull(request);
@@ -89,14 +89,14 @@ public class DtoValidationTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    [InlineData(null!)]
-    public void AskQuestionRequest_WithNullOrEmptyVideoId_ShouldCreateInstanceButBeInvalid(string videoId)
+    [InlineData(null)]
+    public void AskQuestionRequest_WithNullOrEmptyVideoId_ShouldCreateInstanceButBeInvalid(string? videoId)
     {
         // Arrange
         var question = "What is this video about?";
 
         // Act
-        var request = new AskQuestionRequest { VideoId = videoId, Question = question };
+        var request = new AskQuestionRequest { VideoId = videoId!, Question = question };
 
         // Assert
         Assert.NotNull(request);
@@ -107,14 +107,14 @@ public class DtoValidationTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    [InlineData(null!)]
-    public void AskQuestionRequest_WithNullOrEmptyQuestion_ShouldCreateInstanceButBeInvalid(string question)
+    [InlineData(null)]
+    public void AskQuestionRequest_WithNullOrEmptyQuestion_ShouldCreateInstanceButBeInvalid(string? question)
     {
         // Arrange
         var videoId = "dQw4w9WgXcQ";
 
         // Act
-        var request = new AskQuestionRequest { VideoId = videoId, Question = question };
+        var request = new AskQuestionRequest { VideoId = videoId, Question = question! };
 
         // Assert
         Assert.NotNull(request);
@@ -222,8 +222,8 @@ public class DtoValidationTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    [InlineData(null!)]
-    public void VideoResponse_WithNullOrEmptyVideoId_ShouldCreateInstance(string videoId)
+    [InlineData(null)]
+    public void VideoResponse_WithNullOrEmptyVideoId_ShouldCreateInstance(string? videoId)
     {
         // Arrange
         var metadata = new VideoMetadata 
@@ -237,7 +237,7 @@ public class DtoValidationTests
         // Act
         var response = new VideoResponse 
         { 
-            VideoId = videoId, 
+            VideoId = videoId!,
             Metadata = metadata, 
             Summary = summary 
         };
@@ -252,8 +252,8 @@ public class DtoValidationTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    [InlineData(null!)]
-    public void VideoResponse_WithNullOrEmptySummary_ShouldCreateInstance(string summary)
+    [InlineData(null)]
+    public void VideoResponse_WithNullOrEmptySummary_ShouldCreateInstance(string? summary)
     {
         // Arrange
         var videoId = "dQw4w9WgXcQ";
@@ -269,7 +269,7 @@ public class DtoValidationTests
         { 
             VideoId = videoId, 
             Metadata = metadata, 
-            Summary = summary 
+            Summary = summary!
         };
 
         // Assert
@@ -436,14 +436,14 @@ public class DtoValidationTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    [InlineData(null!)]
-    public void AnswerResponse_WithNullOrEmptyAnswer_ShouldCreateInstance(string answer)
+    [InlineData(null)]
+    public void AnswerResponse_WithNullOrEmptyAnswer_ShouldCreateInstance(string? answer)
     {
         // Arrange
         var chunksUsed = new List<int> { 1, 2, 3 };
 
         // Act
-        var answerResponse = new AnswerResponse { Answer = answer, ChunksUsed = chunksUsed };
+        var answerResponse = new AnswerResponse { Answer = answer!, ChunksUsed = chunksUsed };
 
         // Assert
         Assert.NotNull(answerResponse);

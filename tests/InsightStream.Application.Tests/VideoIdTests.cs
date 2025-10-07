@@ -77,11 +77,11 @@ public class VideoIdTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    [InlineData(null!)]
-    public void TryParse_WithNullOrEmptyUrl_ShouldReturnFalse(string url)
+    [InlineData(null)]
+    public void TryParse_WithNullOrEmptyUrl_ShouldReturnFalse(string? url)
     {
         // Act
-        var result = VideoId.TryParse(url, out var videoId);
+        var result = VideoId.TryParse(url!, out var videoId);
 
         // Assert
         Assert.False(result);
