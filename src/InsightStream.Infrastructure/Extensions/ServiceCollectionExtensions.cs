@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using InsightStream.Infrastructure.Configuration;
+using InsightStream.Application.Interfaces.Services;
+using InsightStream.Infrastructure.Services;
 
 namespace InsightStream.Infrastructure.Extensions;
 
@@ -26,6 +28,9 @@ public static class ServiceCollectionExtensions
         services.AddOptions<LlmProviderConfiguration>()
             .ValidateDataAnnotations()
             .ValidateOnStart();
+        
+        // Register YouTube transcript service
+        services.AddSingleton<IYouTubeTranscriptService, YouTubeTranscriptService>();
         
         // TODO: Register IChatClient (Phase 2)
         // TODO: Register agents (Phase 3)
