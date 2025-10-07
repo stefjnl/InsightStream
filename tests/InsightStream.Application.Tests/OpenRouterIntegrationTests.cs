@@ -113,12 +113,12 @@ public class OpenRouterIntegrationTests : IDisposable
         var response = await _httpClient.SendAsync(request);
 
         // Assert
-        Assert.True(response.IsSuccessStatusCode, 
+        Assert.True(response.IsSuccessStatusCode,
             $"Authentication failed with status code {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync()}");
-        
+
         var content = await response.Content.ReadAsStringAsync();
         Assert.False(string.IsNullOrEmpty(content));
-        
+
         // Verify the response contains expected model data structure
         var jsonDoc = JsonDocument.Parse(content);
         Assert.True(jsonDoc.RootElement.TryGetProperty("data", out var dataElement));
@@ -191,7 +191,7 @@ public class OpenRouterIntegrationTests : IDisposable
         // Assert
         Assert.NotNull(response);
         Assert.NotEmpty(response.Text ?? string.Empty);
-        
+
         // Verify the response contains a reasonable answer
         var content = response.Text?.ToLowerInvariant() ?? string.Empty;
         Assert.True(content.Contains("4") || content.Contains("four"),
@@ -210,7 +210,7 @@ public class OpenRouterIntegrationTests : IDisposable
 
         var testModel = _providersConfig.Providers["OpenRouter"].Models.First().Id;
         var chatClient = _chatClientFactory.CreateClient("OpenRouter", testModel);
-        
+
         var messages = new[]
         {
             new ChatMessage(ChatRole.System, "You are a helpful assistant. Always respond with 'Hello, World!' and nothing else."),
@@ -249,7 +249,7 @@ public class OpenRouterIntegrationTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         Assert.Contains("unauthorized", content.ToLowerInvariant());
     }
@@ -350,7 +350,7 @@ public class OpenRouterIntegrationTests : IDisposable
 
         var testModel = _providersConfig.Providers["OpenRouter"].Models.First().Id;
         var chatClient = _chatClientFactory.CreateClient("OpenRouter", testModel);
-        
+
         // Create a long message (approximately 1000 words)
         var longText = string.Join(" ", Enumerable.Repeat("This is a test sentence. ", 200));
         var message = new ChatMessage(ChatRole.User, $"Please summarize this text in one sentence: {longText}");
@@ -361,7 +361,7 @@ public class OpenRouterIntegrationTests : IDisposable
         // Assert
         Assert.NotNull(response);
         Assert.NotEmpty(response.Text ?? string.Empty);
-        
+
         // The summary should be significantly shorter than the original text
         Assert.True((response.Text?.Length ?? 0) < longText.Length / 2);
     }
@@ -371,7 +371,7 @@ public class OpenRouterIntegrationTests : IDisposable
     {
         // Debug configuration state
         LogConfigurationState();
-        
+
         // Arrange - Temporarily bypass the configuration check to force the test
         if (!IsOpenRouterConfigured())
         {
@@ -395,7 +395,7 @@ public class OpenRouterIntegrationTests : IDisposable
     public async Task DirectApiCall_WithRealApiKey_ShouldSucceed()
     {
         // Arrange - Use the real API key directly
-        var apiKey = "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";
+        var apiKey = "";
         var endpoint = "https://openrouter.ai/api/v1/models";
 
         // Act
@@ -409,15 +409,15 @@ public class OpenRouterIntegrationTests : IDisposable
         // Assert
         Assert.True(response.IsSuccessStatusCode,
             $"Direct API call failed with status code {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync()}");
-        
+
         var content = await response.Content.ReadAsStringAsync();
         Assert.False(string.IsNullOrEmpty(content));
-        
+
         // Verify the response contains expected model data structure
         var jsonDoc = JsonDocument.Parse(content);
         Assert.True(jsonDoc.RootElement.TryGetProperty("data", out var dataElement));
         Assert.True(dataElement.GetArrayLength() > 0, "No models returned from OpenRouter API");
-        
+
         _logger.LogInformation("Direct API call successful! Retrieved {Count} models", dataElement.GetArrayLength());
     }
 
@@ -452,7 +452,7 @@ public class OpenRouterIntegrationTests : IDisposable
         {
             _logger.LogInformation("=== Configuration Debug Info ===");
             _logger.LogInformation("Providers count: {Count}", _providersConfig.Providers.Count);
-            
+
             if (_providersConfig.Providers.ContainsKey("OpenRouter"))
             {
                 var config = _providersConfig.Providers["OpenRouter"];
