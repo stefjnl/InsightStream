@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using InsightStream.Application.Interfaces.Factories;
 using InsightStream.Application.Interfaces.Services;
@@ -23,11 +24,17 @@ public static class ServiceCollectionExtensions
         services.Configure<AppConfiguration>(options =>
             configuration.GetSection(AppConfiguration.SectionName).Bind(options));
 
+        // Add memory cache
+        services.AddMemoryCache();
+
         // Register chat client factory
         services.AddSingleton<IChatClientFactory, ChatClientFactory>();
 
         // Register YouTube transcript service
         services.AddSingleton<IYouTubeTranscriptService, YouTubeTranscriptService>();
+
+        // Register video cache service
+        services.AddSingleton<IVideoCacheService, VideoCacheService>();
 
         // TODO: Register agents (Phase 3)
         // TODO: Register use cases (Phase 4)
