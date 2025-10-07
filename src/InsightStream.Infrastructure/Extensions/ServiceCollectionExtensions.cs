@@ -1,42 +1,37 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using InsightStream.Infrastructure.Configuration;
+using Microsoft.Extensions.Options;
+using InsightStream.Application.Interfaces.Factories;
 using InsightStream.Application.Interfaces.Services;
+using InsightStream.Infrastructure.Configuration;
+using InsightStream.Infrastructure.Factories;
 using InsightStream.Infrastructure.Services;
 
 namespace InsightStream.Infrastructure.Extensions;
 
-/// <summary>
-/// Extension methods for IServiceCollection to register infrastructure services.
-/// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Adds InsightStream infrastructure services to the service collection.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The application configuration.</param>
-    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddInsightStreamInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Bind and validate LLM provider configuration
-        services.Configure<LlmProviderConfiguration>(options =>
-            configuration.GetSection(LlmProviderConfiguration.SectionName).Bind(options));
+        // Bind provider configuration
+        services.Configure<ProvidersConfiguration>(options =>
+            configuration.GetSection(ProvidersConfiguration.SectionName).Bind(options));
         
-        services.AddOptions<LlmProviderConfiguration>()
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-        
+        // Bind app configuration
+        services.Configure<AppConfiguration>(options =>
+            configuration.GetSection(AppConfiguration.SectionName).Bind(options));
+
+        // Register chat client factory
+        services.AddSingleton<IChatClientFactory, ChatClientFactory>();
+
         // Register YouTube transcript service
         services.AddSingleton<IYouTubeTranscriptService, YouTubeTranscriptService>();
-        
-        // TODO: Register IChatClient (Phase 2)
+
         // TODO: Register agents (Phase 3)
-        // TODO: Register services (Phase 2)
         // TODO: Register use cases (Phase 4)
-        
+
         return services;
     }
 }
