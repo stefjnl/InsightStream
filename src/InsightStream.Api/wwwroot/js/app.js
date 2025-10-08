@@ -1,7 +1,7 @@
 // App Module
 // Main application logic, event handlers, and initialization
 
-import mutations, { default as state } from './state.js';
+import state, { mutations } from './state.js';
 import { analyzeVideo, streamAnswer, isValidYouTubeUrl, extractVideoId } from './api.js';
 import * as ui from './ui.js';
 import {

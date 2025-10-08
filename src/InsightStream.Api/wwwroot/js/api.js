@@ -1,8 +1,6 @@
 // API Module
 // Handles all API calls to the backend
 
-const API_BASE_URL = 'https://localhost:7194/api';
-
 /**
  * Analyze a YouTube video
  * @param {string} videoUrl - YouTube video URL to analyze
@@ -10,7 +8,7 @@ const API_BASE_URL = 'https://localhost:7194/api';
  */
 export async function analyzeVideo(videoUrl) {
   try {
-    const response = await fetch(`${API_BASE_URL}/youtube/analyze`, {
+    const response = await fetch(`/api/youtube/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +39,7 @@ export async function analyzeVideo(videoUrl) {
  */
 export async function streamAnswer(videoId, question, onChunk, onComplete, onError) {
   try {
-    const response = await fetch(`${API_BASE_URL}/youtube/ask`, {
+    const response = await fetch(`/api/youtube/ask`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
