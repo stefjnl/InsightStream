@@ -32,7 +32,7 @@ public sealed class ChatClientFactory : IChatClientFactory
             throw new InvalidOperationException("Providers configuration is not initialized. Ensure the configuration is properly loaded.");
         }
 
-        if (_providersConfig.Providers == null || _providersConfig.Providers.Count == 0)
+        if (_providersConfig == null || _providersConfig.Count == 0)
         {
             throw new InvalidOperationException("No providers are configured. Please add provider configurations in your settings.");
         }
@@ -45,10 +45,10 @@ public sealed class ChatClientFactory : IChatClientFactory
         // Use provided provider or fall back to default
         var provider = providerName ?? _defaultProvider;
         
-        if (!_providersConfig.Providers.TryGetValue(provider, out var settings))
+        if (!_providersConfig.TryGetValue(provider, out var settings))
         {
             throw new InvalidOperationException(
-                $"Provider '{provider}' not found in configuration. Available providers: {string.Join(", ", _providersConfig.Providers.Keys)}");
+                $"Provider '{provider}' not found in configuration. Available providers: {string.Join(", ", _providersConfig.Keys)}");
         }
 
         // Validate provider settings

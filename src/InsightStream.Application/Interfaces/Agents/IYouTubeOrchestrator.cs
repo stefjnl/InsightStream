@@ -3,32 +3,25 @@ using InsightStream.Domain.Models;
 namespace InsightStream.Application.Interfaces.Agents;
 
 /// <summary>
-/// Orchestrator agent that coordinates video processing workflows.
+/// Orchestrator agent that coordinates video processing workflows using LLM with tools.
 /// </summary>
 public interface IYouTubeOrchestrator
 {
     /// <summary>
-    /// Extracts video content including metadata and transcript chunks.
+    /// Processes an analyze request for a YouTube video, extracting content and generating a summary.
     /// </summary>
-    /// <param name="videoUrl">The YouTube video URL.</param>
+    /// <param name="videoUrl">The YouTube video URL to analyze.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A tuple containing video metadata and transcript chunks.</returns>
-    Task<(VideoMetadata Metadata, IReadOnlyList<TranscriptChunk> Chunks)> ExtractVideoContentAsync(string videoUrl, CancellationToken cancellationToken = default);
+    /// <returns>The generated summary text for the video.</returns>
+    Task<string> ProcessAnalyzeRequestAsync(string videoUrl, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Generates a summary for the specified video.
+    /// Processes a question request about a specific video, maintaining conversation context.
     /// </summary>
-    /// <param name="videoId">The ID of the video to summarize.</param>
+    /// <param name="videoId">The ID of the video to question about.</param>
+    /// <param name="question">The question to answer about the video content.</param>
+    /// <param name="history">The conversation history for context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The generated summary text.</returns>
-    Task<string> GenerateSummaryAsync(string videoId, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Answers a question about the video content.
-    /// </summary>
-    /// <param name="videoId">The ID of the video.</param>
-    /// <param name="question">The question to answer.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A streaming response with the answer.</returns>
-    IAsyncEnumerable<string> AnswerQuestionAsync(string videoId, string question, CancellationToken cancellationToken = default);
+    /// <returns>A streaming response with the answer to the question.</returns>
+    IAsyncEnumerable<string> ProcessQuestionRequestAsync(string videoId, string question, List<ConversationMessage> history, CancellationToken cancellationToken);
 }

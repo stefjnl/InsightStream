@@ -63,38 +63,25 @@ public sealed class ProcessYouTubeRequestUseCase
                 }
             }
 
-            _logger.LogInformation("Extracting video content for VideoId: {VideoId}", videoIdString);
+            _logger.LogInformation("Processing video analysis for VideoId: {VideoId}", videoIdString);
             
-            // Extract content from YouTube
-            var (metadata, chunks) = await _orchestrator.ExtractVideoContentAsync(request.VideoUrl, cancellationToken);
+            // Process the analyze request using the new orchestrator method
+            var summary = await _orchestrator.ProcessAnalyzeRequestAsync(request.VideoUrl, cancellationToken);
             
-            // Create new video session
-            var session = new VideoSession
+            // Get the video session that was created by the orchestrator
+            var session = await _cacheService.GetVideoSessionAsync(videoIdString, cancellationToken);
+            if (session == null)
             {
-                VideoId = videoIdString,
-                Metadata = metadata,
-                Chunks = chunks,
-                ConversationHistory = new List<ConversationMessage>()
-            };
-
-            // Cache the session
-            await _cacheService.SetVideoSessionAsync(session, cancellationToken);
-            _logger.LogInformation("Video session cached for VideoId: {VideoId}", videoIdString);
-
-            // Generate summary
-            _logger.LogInformation("Generating summary for VideoId: {VideoId}", videoIdString);
-            var summary = await _orchestrator.GenerateSummaryAsync(videoIdString, cancellationToken);
-            
-            // Update cached session with summary
-            await _cacheService.UpdateSummaryAsync(videoIdString, summary, cancellationToken);
-            session.Summary = summary;
+                _logger.LogError("Video session not found after processing for VideoId: {VideoId}", videoIdString);
+                throw new InvalidOperationException("Video session was not created properly");
+            }
 
             _logger.LogInformation("Video analysis completed for VideoId: {VideoId}", videoIdString);
 
             return new VideoResponse
             {
                 VideoId = videoIdString,
-                Metadata = metadata,
+                Metadata = session.Metadata,
                 Summary = summary
             };
         }
@@ -171,12 +158,16 @@ public sealed class ProcessYouTubeRequestUseCase
             yield break;
         }
 
+        // Get the conversation history from the video session
+        var videoSession = await _cacheService.GetVideoSessionAsync(request.VideoId, cancellationToken);
+        var history = videoSession?.ConversationHistory ?? new List<ConversationMessage>();
+        
         // Get the streaming response from orchestrator
         IAsyncEnumerable<string> responseStream;
         Exception? streamException = null;
         try
         {
-            responseStream = _orchestrator.AnswerQuestionAsync(request.VideoId, request.Question, cancellationToken);
+            responseStream = _orchestrator.ProcessQuestionRequestAsync(request.VideoId, request.Question, history, cancellationToken);
         }
         catch (Exception ex)
         {

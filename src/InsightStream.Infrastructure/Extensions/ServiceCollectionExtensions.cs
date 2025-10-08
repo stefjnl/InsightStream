@@ -39,9 +39,6 @@ public static class ServiceCollectionExtensions
 
         // Register agents (Scoped lifetime)
         services.AddScoped<IYouTubeOrchestrator, YouTubeOrchestratorAgent>();
-        services.AddScoped<IContentExtractionAgent, ContentExtractionAgent>();
-        services.AddScoped<IAnalysisAgent, AnalysisAgent>();
-        services.AddScoped<IQuestionAnsweringAgent, QuestionAnsweringAgent>();
 
         // Register use cases (Scoped lifetime)
         services.AddScoped<ProcessYouTubeRequestUseCase>();

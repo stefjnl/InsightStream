@@ -465,3 +465,6 @@ config/development.json
 # Aspire specific
 *.devcontainer.json
 !.devcontainer/devcontainer.json
+
+# TEMP: TODO: Remove when fixed
+*.md

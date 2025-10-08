@@ -1,10 +1,7 @@
 namespace InsightStream.Infrastructure.Configuration;
-
-public sealed class ProvidersConfiguration
+public sealed class ProvidersConfiguration : Dictionary<string, ProviderSettings>
 {
     public const string SectionName = "Providers";
-    
-    public Dictionary<string, ProviderSettings> Providers { get; init; } = new();
 }
 
 public sealed class ProviderSettings
