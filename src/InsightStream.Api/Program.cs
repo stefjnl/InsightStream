@@ -9,16 +9,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add CORS configuration
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
 
 // Register infrastructure layer (includes configuration binding)
 builder.Services.AddInsightStreamInfrastructure(builder.Configuration);
@@ -31,10 +21,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<GlobalExceptionHandlerMiddleware>(); // Add error handling
-app.UseCors(); // Add CORS
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseHttpsRedirection();
-app.UseAuthorization();
+
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
 app.MapControllers();
 
 app.Run();

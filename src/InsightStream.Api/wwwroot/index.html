@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InsightStream - YouTube Video Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-primary-bg text-primary-text font-inter">
+    <header class="app-header">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white">InsightStream</h1>
+            <button id="theme-toggle" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors" aria-label="Toggle theme">
+                <span class="text-xl">🌙</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="main-layout flex h-[calc(100vh-72px)]">
+        <aside class="sources-panel w-full md:w-1/3 lg:w-1/4 bg-secondary-bg border-r border-border-color p-4 overflow-y-auto">
+            <button id="add-video-btn" class="btn-primary w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 mb-4">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add YouTube Video
+            </button>
+            
+            <div id="sources-container">
+                <h2 class="text-lg font-semibold mb-3 text-secondary-text">Video Sources</h2>
+                <div id="sources-list" class="space-y-3">
+                    <!-- Video cards will be inserted here -->
+                </div>
+                <div id="empty-sources" class="text-center py-8 text-secondary-text">
+                    <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    <p>No videos added yet</p>
+                    <p class="text-sm mt-1">Add a YouTube video to get started</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content-area flex-1 bg-primary-bg p-4 md:p-6 overflow-y-auto">
+            <!-- Welcome State (shown when no video is selected) -->
+            <div id="welcome-state" class="flex flex-col items-center justify-center h-full text-center">
+                <svg class="w-16 h-16 mb-4 text-primary-accent opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+                <h2 class="text-2xl font-bold mb-2">Welcome to InsightStream</h2>
+                <p class="text-secondary-text max-w-md mb-6">Analyze YouTube videos with AI-powered insights. Add a video to get started with intelligent summaries and Q&A.</p>
+            </div>
+
+            <!-- Content State (shown when a video is selected) -->
+            <div id="content-state" class="hidden space-y-6">
+                <!-- Summary Card -->
+                <div id="summary-card" class="bg-secondary-bg rounded-xl p-6 border border-border-color hidden">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-primary-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Video Summary
+                    </h3>
+                    <div id="summary-content">
+                        <!-- Summary content will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Chat Card -->
+                <div id="chat-card" class="bg-secondary-bg rounded-xl border border-border-color flex flex-col h-[calc(100vh-300px)]">
+                    <div class="p-4 border-b border-border-color">
+                        <h3 class="text-xl font-semibold flex items-center gap-2">
+                            <svg class="w-5 h-5 text-primary-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                            Ask Questions
+                        </h3>
+                    </div>
+                    
+                    <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4">
+                        <!-- Chat messages will be inserted here -->
+                    </div>
+                    
+                    <div class="p-4 border-t border-border-color">
+                        <form id="chat-form" class="flex gap-2">
+                            <input 
+                                type="text" 
+                                id="question-input" 
+                                placeholder="Ask a question about this video..." 
+                                class="flex-1 px-4 py-2 rounded-lg bg-primary-bg border border-border-color focus:outline-none focus:ring-2 focus:ring-primary-accent"
+                                disabled
+                            >
+                            <button 
+                                type="submit" 
+                                id="send-btn"
+                                class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2"
+                                disabled
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                </svg>
+                                Send
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Video Modal -->
+    <div id="add-video-modal" class="modal-backdrop fixed inset-0 bg-black/50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-secondary-bg rounded-xl p-6 w-full max-w-md border border-border-color">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Add YouTube Video</h3>
+                <button id="close-modal-btn" class="p-1 rounded-lg hover:bg-white/10 transition-colors" aria-label="Close modal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <label for="video-url" class="block text-sm font-medium mb-2">YouTube URL</label>
+                <input 
+                    type="url" 
+                    id="video-url" 
+                    placeholder="https://www.youtube.com/watch?v=..." 
+                    class="w-full px-4 py-2 rounded-lg bg-primary-bg border border-border-color focus:outline-none focus:ring-2 focus:ring-primary-accent"
+                >
+                <div id="url-error" class="text-red-500 text-sm mt-1 hidden"></div>
+            </div>
+            
+            <div id="analyze-error" class="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-lg mb-4 hidden"></div>
+            
+            <div class="flex gap-3">
+                <button id="cancel-btn" class="flex-1 py-2 px-4 rounded-lg bg-primary-bg border border-border-color hover:bg-white/5 transition-colors">
+                    Cancel
+                </button>
+                <button id="analyze-btn" class="flex-1 btn-primary py-2 px-4 rounded-lg flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <span id="analyze-btn-text">Analyze</span>
+                    <div id="analyze-spinner" class="hidden w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Toast -->
+    <div id="error-toast" class="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg hidden z-50 max-w-sm">
+        <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <h4 class="font-semibold">Error</h4>
+                <p id="error-message" class="text-sm"></p>
+            </div>
+            <button id="close-toast-btn" class="ml-auto -mt-1 -mr-1 p-1 hover:bg-white/10 rounded transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Modules -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
